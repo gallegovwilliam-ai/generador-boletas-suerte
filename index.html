@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Boletas - Su Suerte El Socio</title>
+    <!-- Librerías para generar QR y descargar imagen -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        body {
+            background-color: #eef2f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .controls {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .controls h2 {
+            margin: 0 0 10px 0;
+            font-size: 20px;
+            color: #333;
+            text-align: center;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+        .input-group input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .btn-action {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 15px;
+            transition: background 0.2s;
+        }
+        .btn-action:hover {
+            background-color: #0056b3;
+        }
+        .btn-download {
+            background-color: #28a745;
+        }
+        .btn-download:hover {
+            background-color: #1e7e34;
+        }
+
+        /* CONTENEDOR DE LA BOLETA / TICKET */
+        #boletaTicket {
+            width: 600px;
+            height: 380px;
+            position: relative;
+            background-image: url('fondo-boleta.jpg'); /* Tu imagen de fondo */
+            background-size: cover;
+            background-position: center;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+            padding: 15px 25px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .header-title {
+            text-align: center;
+            font-size: 32px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            color: #000;
+            margin-top: 5px;
+            text-transform: uppercase;
+        }
+
+        /* CUADRÍCULA DE LOS 4 NÚMEROS Y QR */
+        .grid-numbers {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 12px 15px;
+            align-items: center;
+        }
+
+        .num-box {
+            background: #ffffff;
+            border: 3px solid #2d5a3f;
+            border-radius: 12px;
+            font-size: 36px;
+            font-weight: bold;
+            text-align: center;
+            padding: 8px 0;
+            color: #000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .qr-container {
+            grid-column: 2;
+            grid-row: 1 / span 2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #fff;
+            padding: 6px;
+            border-radius: 8px;
+            border: 2px solid #333;
+        }
+
+        /* PIE DE PÁGINA Y TEXTOS LEGALES */
+        .footer-rules {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            font-weight: bold;
+            color: #000;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+        .rule-box {
+            width: 45%;
+            background: rgba(255, 255, 255, 0.85);
+            padding: 5px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="controls">
+        <h2>Panel de Boleta Digital</h2>
+        <input type="text" id="inTitulo" value="VITORIA DA SORTE" placeholder="Título de la Rifa">
+        
+        <div class="input-group">
+            <input type="text" id="inNum1" value="8520" placeholder="Número 1">
+            <input type="text" id="inNum2" value="0923" placeholder="Número 2">
+        </div>
+        <div class="input-group">
+            <input type="text" id="inNum3" value="7731" placeholder="Número 3">
+            <input type="text" id="inNum4" value="3456" placeholder="Número 4">
+        </div>
+
+        <input type="text" id="inQR" value="https://wa.me/59167723609" placeholder="Enlace o Texto para el Código QR">
+
+        <button class="btn-action" onclick="actualizarBoleta()">Generar Vista Previa</button>
+        <button class="btn-action btn-download" onclick="descargarImagen()">Descargar Boleta (PNG)</button>
+    </div>
+
+    <!-- TICKET GENERAL DIBUJADO -->
+    <div id="boletaTicket">
+        <div class="header-title" id="lblTitulo">VITORIA DA SORTE</div>
+
+        <div class="grid-numbers">
+            <div class="num-box" id="lblNum1">8520</div>
+            <div class="num-box" id="lblNum2">0923</div>
+            
+            <div class="qr-container">
+                <div id="qrcode"></div>
+            </div>
+
+            <div class="num-box" id="lblNum3">7731</div>
+            <div class="num-box" id="lblNum4">3456</div>
+        </div>
+
+        <div class="footer-rules">
+            <div class="rule-box">
+                PRAZO DE ENTREGA ATE 09:00H DO DIA SEGUINTE. PAGAVEL AO PORTADOR.
+            </div>
+            <div class="rule-box">
+                SE ESTIVER ROMPIDO O MESMO ESTA ANULADO.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let qrCodeObj = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Generar QR inicial
+            qrCodeObj = new QRCode(document.getElementById("qrcode"), {
+                text: document.getElementById('inQR').value,
+                width: 90,
+                height: 90
+            });
+        });
+
+        function actualizarBoleta() {
+            document.getElementById('lblTitulo').innerText = document.getElementById('inTitulo').value;
+            document.getElementById('lblNum1').innerText = document.getElementById('inNum1').value;
+            document.getElementById('lblNum2').innerText = document.getElementById('inNum2').value;
+            document.getElementById('lblNum3').innerText = document.getElementById('inNum3').value;
+            document.getElementById('lblNum4').innerText = document.getElementById('inNum4').value;
+
+            // Actualizar Código QR
+            document.getElementById("qrcode").innerHTML = "";
+            qrCodeObj = new QRCode(document.getElementById("qrcode"), {
+                text: document.getElementById('inQR').value,
+                width: 90,
+                height: 90
+            });
+        }
+
+        function descargarImagen() {
+            const ticketElement = document.getElementById('boletaTicket');
+            
+            html2canvas(ticketElement, { scale: 2 }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `Boleta-${document.getElementById('lblNum1').innerText}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+    </script>
+
+</body>
+</html>
